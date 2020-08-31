@@ -2,44 +2,50 @@ package lending
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkErr "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/spoto/lending/x/lending/types"
 )
 
-// NewHandler creates an sdk.Handler for all the lending type messages
-func NewHandler(k Keeper) sdk.Handler {
+func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		// TODO: Define your msg cases
-		// 
-		//Example:
-		// case Msg<Action>:
-		// 	return handleMsg<Action>(ctx, k, msg)
+		case types.MsgCreateDebt:
+			return handleMsgCreateDebt(ctx, keeper, msg)
+		case types.MsgPayDebt:
+			return handleMsgPayDebt(ctx, keeper, msg)
+		case types.MsgChangeDebt:
+			return handleMsgChangeDebt(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName,  msg)
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
+			errMsg := fmt.Sprintf("Unrecognized %s message type: %v", types.ModuleName, msg.Type())
+			return nil, sdkErr.Wrap(sdkErr.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
-// handle<Action> does x
-func handleMsg<Action>(ctx sdk.Context, k Keeper, msg Msg<Action>) (*sdk.Result, error) {
-	err := k.<Action>(ctx, msg.ValidatorAddr)
+func handleMsgChangeDebt(ctx sdk.Context, keeper Keeper, msg types.MsgChangeDebt) (*sdk.Result, error) {
+	err := keeper.ChangeDebt(ctx, msg)
 	if err != nil {
-		return nil, err
+		return nil, sdkErr.Wrap(sdkErr.ErrInvalidRequest, err.Error())
 	}
 
-	// TODO: Define your msg events
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddr.String()),
-		),
-	)
+	return &sdk.Result{Log: "Debt changed successfully"}, nil
+}
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+func handleMsgCreateDebt(ctx sdk.Context, keeper Keeper, msg types.MsgCreateDebt) (*sdk.Result, error) {
+	err := keeper.CreateDebt(ctx, types.Debt(msg))
+	if err != nil {
+		return nil, sdkErr.Wrap(sdkErr.ErrInvalidRequest, err.Error())
+	}
+
+	return &sdk.Result{Log: "Debt created successfully"}, nil
+}
+
+func handleMsgPayDebt(ctx sdk.Context, keeper Keeper, msg types.MsgPayDebt) (*sdk.Result, error) {
+	err := keeper.PayDebt(ctx, msg)
+	if err != nil {
+		return nil, sdkErr.Wrap(sdkErr.ErrInvalidRequest, err.Error())
+	}
+
+	return &sdk.Result{Log: "Debt financed successfully"}, nil
 }

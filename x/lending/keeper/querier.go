@@ -2,39 +2,57 @@ package keeper
 
 import (
 	"fmt"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkErr "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/spoto/lending/x/lending/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// NewQuerier creates a new querier for lending clients.
-func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+func NewQuerier(keeper Keeper) sdk.Querier {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
-		case types.QueryParams:
-			return queryParams(ctx, k)
-			// TODO: Put the modules query routes
+		case types.QueryAllDebts:
+			return queryGetAllDebts(ctx, path[1:], keeper)
+		case types.QueryDebtorDebts:
+			return queryGetDebtorDebts(ctx, path[1:], keeper)
+		case types.QueryCreditorDebts:
+			return queryGetCreditorDebts(ctx, path[1:], keeper)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown lending query endpoint")
+			return nil, sdkErr.Wrap(sdkErr.ErrUnknownRequest, fmt.Sprintf("Unknown %s query endpoint", types.ModuleName))
 		}
 	}
 }
 
-func queryParams(ctx sdk.Context, k Keeper) ([]byte, error) {
-	params := k.GetParams(ctx)
-
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+func queryGetAllDebts(ctx sdk.Context, _ []string, keeper Keeper) ([]byte, error) {
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, keeper.GetAllDebts(ctx))
+	if err2 != nil {
+		return nil, sdkErr.Wrap(sdkErr.ErrUnknownRequest, "Could not marshal result to JSON")
 	}
 
-	return res, nil
+	return bz, nil
 }
 
-// TODO: Add the modules query functions
-// They will be similar to the above one: queryParams()
+func queryGetDebtorDebts(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
+	addr := path[0]
+	address, _ := sdk.AccAddressFromBech32(addr)
+
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, keeper.GetDebtorDebts(ctx, address))
+	if err2 != nil {
+		return nil, sdkErr.Wrap(sdkErr.ErrUnknownRequest, "Could not marshal result to JSON")
+	}
+
+	return bz, nil
+}
+
+func queryGetCreditorDebts(ctx sdk.Context, path []string, keeper Keeper) ([]byte, error) {
+	addr := path[0]
+	address, _ := sdk.AccAddressFromBech32(addr)
+
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, keeper.GetCreditorDebts(ctx, address))
+	if err2 != nil {
+		return nil, sdkErr.Wrap(sdkErr.ErrUnknownRequest, "Could not marshal result to JSON")
+	}
+
+	return bz, nil
+}

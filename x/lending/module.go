@@ -2,6 +2,7 @@ package lending
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -15,6 +16,7 @@ import (
 	"github.com/spoto/lending/x/lending/client/cli"
 	"github.com/spoto/lending/x/lending/client/rest"
 	"github.com/spoto/lending/x/lending/keeper"
+	"github.com/spoto/lending/x/lending/types" // added
 )
 
 // Type check to ensure the interface is properly implemented
@@ -64,7 +66,7 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 // GetQueryCmd returns no root query command for the lending module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+	return cli.GetQueryCmd(cdc) // changed
 }
 
 //____________________________________________________________________________
@@ -72,17 +74,16 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements an application module for the lending module.
 type AppModule struct {
 	AppModuleBasic
-
 	keeper        keeper.Keeper
-	// TODO: Add keepers that your application depends on
+	bankKeeper    bank.Keeper // added
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, /*TODO: Add Keepers that your application depends on*/) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper) AppModule { // added parameter
 	return AppModule{
 		AppModuleBasic:      AppModuleBasic{},
 		keeper:              k,
-		// TODO: Add keepers that your application depends on
+		bankKeeper:          bankKeeper, // added
 	}
 }
 
@@ -111,7 +112,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler returns the lending module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return types.NewQuerier(am.keeper)
+	return NewQuerier(am.keeper) // changed package
 }
 
 // InitGenesis performs genesis initialization for the lending module. It returns

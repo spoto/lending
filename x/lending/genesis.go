@@ -2,7 +2,6 @@ package lending
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/spoto/lending/x/lending/types"
 )
 

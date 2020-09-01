@@ -14,18 +14,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/libs/cli"
-
 	"github.com/spoto/lending/app"
-
+	amino "github.com/tendermint/go-amino"
+	"github.com/tendermint/tendermint/libs/cli"
 )
 
 func main() {
@@ -42,13 +37,9 @@ func main() {
 	config.SetBech32PrefixForConsensusNode(sdk.Bech32PrefixConsAddr, sdk.Bech32PrefixConsPub)
 	config.Seal()
 
-	// TODO: setup keybase, viper object, etc. to be passed into
-	// the below functions and eliminate global vars, like we do
-	// with the cdc
-
 	rootCmd := &cobra.Command{
-		Use:   "appcli",
-		Short: "Command line interface for interacting with appd",
+		Use:   "lendingCLI",
+		Short: "Lending Client",
 	}
 
 	// Add --chain-id to persistent flags and mark it required
@@ -140,12 +131,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 	return txCmd
 }
 
-// registerRoutes registers the routes from the different modules for the LCD.
-// NOTE: details on the routes added for each module are in the module documentation
-// NOTE: If making updates here you also need to update the test helper in client/lcd/test_helper.go
 func registerRoutes(rs *lcd.RestServer) {
 	client.RegisterRoutes(rs.CliCtx, rs.Mux)
-	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
 	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
 }
 

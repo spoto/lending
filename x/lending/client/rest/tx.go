@@ -1,45 +1,59 @@
 package rest
-// The packages below are commented out at first to prevent an error if this file isn't initially saved.
+
 import (
-	// "bytes"
-	// "net/http"
-
-	"github.com/gorilla/mux"
-
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
-	// "github.com/cosmos/cosmos-sdk/types/rest"
-	// "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	// "github.com/spoto/lending/x/lending/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/gorilla/mux"
+	"github.com/spoto/lending/x/lending/types"
+	"net/http"
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	// r.HandleFunc(
-	// TODO: Define the Rest route ,
-	// Call the function which should be executed for this route),
-	// ).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/createdebt", types.ModuleName), createDebtFn(cliCtx)).Methods("POST")
 }
 
-/*
-// Action TX body
-type <Action>Req struct {
-	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	// TODO: Define more types if needed
+type createDebtRequest struct {
+	BaseReq rest.BaseReq `json:"base_req"`
+	ID     string         `json:"ID"`
+	Debtor sdk.AccAddress `json:"debtor"`
+	Amount   sdk.Coin       `json:"amount"`
+	Creditor sdk.AccAddress `json:"creditor"`
 }
 
-func <Action>RequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func createDebtFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req <Action>Req
-		vars := mux.Vars(r)
+		var req createDebtRequest
 
-		baseReq := req.BaseReq.Sanitize()
-		if !baseReq.ValidateBasic(w) {
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
 
-		// TODO: Define the module tx logic for this action
+		baseReq := req.BaseReq.Sanitize()
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, BaseReq, []sdk.Msg{msg})
+		if !baseReq.ValidateBasic(w) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid request")
+			return
+		}
+
+		// create the message
+		msg := types.MsgCreateDebt {
+			ID:       req.ID,
+			Amount:   req.Amount,
+			Creditor: req.Creditor,
+			Debtor:   req.Debtor,
+		}
+
+		err := msg.ValidateBasic()
+
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }
-*/

@@ -16,7 +16,7 @@ jobs:
         run: make test
       - name: Build all
         run: make build-all
-      - name: Publish artifacts
-        uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2
         with:
-	  path: build/
+          name: Package
+          path: staging

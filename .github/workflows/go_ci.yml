@@ -18,5 +18,6 @@ jobs:
         run: make build-all
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
-	name: executables
-	path: build
+	with:
+	  name: executables
+	  path: build

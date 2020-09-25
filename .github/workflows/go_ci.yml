@@ -19,5 +19,5 @@ jobs:
       - name: Publish artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: Packages.zip
+          name: Packages
           path: build

@@ -1,7 +1,7 @@
-# TODO
+# Lending module for Cosmos SDK
 
-The scaffolding tool creates a module with countless todos. These todos are placed in places in which you much delete them and fill them with what the module you are building needs.
+This is an example of definition of a module for the Cosmos SDK
+blockchain framework in the Go language.
 
-## APP
 
-Once you have created your module and you are ready to integrate it into your app then you can follow the readme that is generated in the scaffolding of the app.
+[![Go-CI Actions Status](https://github.com/spoto/lending/workflows/Go-CI/badge.svg)](https://github.com/spoto/lending/actions)

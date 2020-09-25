@@ -13,10 +13,11 @@ jobs:
         with:
           go-version: '1.15.x'
       - name: Test
-        run: make test
+        run: make tes
       - name: Build all
         run: make build-all
-      - uses: actions/upload-artifact@v2
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v2
         with:
           name: Packages
           path: build
